@@ -1,17 +1,22 @@
-import React from 'react';
-import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
-import { useTracks, VideoTrack, isTrackReference } from '@livekit/react-native';
+import { isTrackReference, useTracks, VideoTrack } from '@livekit/react-native';
 import { Track } from 'livekit-client';
+import React from 'react';
+import { Dimensions, FlatList, StyleSheet } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-export const RoomView = () => {
-  const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare]); // all participant tracks
+export const RoomView = ({ navigation }) => {
+  const tracks = useTracks(
+    [
+      { source: Track.Source.Camera, withPlaceholder: true },
+      { source: Track.Source.ScreenShare, withPlaceholder: false },
+    ],
+    { onlySubscribed: false },
+  ); // all participant tracks
 
   return (
     <FlatList
       data={tracks}
-      keyExtractor={track => track.publication.trackSid}
       renderItem={({ item }) =>
         isTrackReference(item) ? (
           <VideoTrack trackRef={item} style={styles.video} />
@@ -25,7 +30,7 @@ export const RoomView = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#000',
+    backgroundColor: '#fff',
     padding: 4,
     alignItems: 'center',
   },

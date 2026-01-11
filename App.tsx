@@ -1,14 +1,15 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { RoomScreen } from './src/screens/RoomSceen';
+import RootStack from './src/navigation/RootStack';
 
 const App: React.FC = () => {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaProvider>
       <StatusBar barStyle="dark-content" />
-      <RoomScreen />
-    </SafeAreaView>
+      <RootStack />
+    </SafeAreaProvider>
   );
 };
 

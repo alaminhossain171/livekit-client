@@ -1,56 +1,65 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   View,
   StyleSheet,
-  TextInput,
-  Button,
   Text,
   Platform,
   PermissionsAndroid,
 } from 'react-native';
 import { LiveKitRoom, AudioSession } from '@livekit/react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import { RoomView } from '../components/RoomView';
 import { fetchLiveKitToken } from '../services/livekit';
 
 export const RoomScreen: React.FC = () => {
-  // Form state
-  const [roomName, setRoomName] = useState('');
-  const [participantName, setParticipantName] = useState('');
+  const route = useRoute<any>();
+  const navigation = useNavigation();
+  const { roomName, participantName } = route.params || {};
 
-  // LiveKit state
   const [token, setToken] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Start AudioSession once
+  // Audio lifecycle
   useEffect(() => {
     AudioSession.startAudioSession();
-
     return () => {
       AudioSession.stopAudioSession();
     };
   }, []);
 
-  // Request permissions on Android
+  useEffect(() => {
+    if (roomName && participantName) {
+      joinRoom();
+    } else {
+      setError('Missing room or participant name');
+      setLoading(false);
+    }
+  }, []);
+
   const requestPermissions = async () => {
     if (Platform.OS === 'android') {
-      await PermissionsAndroid.requestMultiple([
+      const result = await PermissionsAndroid.requestMultiple([
         PermissionsAndroid.PERMISSIONS.CAMERA,
         PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
       ]);
+
+      const denied = Object.values(result).some(
+        status => status !== PermissionsAndroid.RESULTS.GRANTED,
+      );
+
+      if (denied) {
+        throw new Error('Camera or microphone permission denied');
+      }
     }
   };
 
-  // Join room function
-  const joinRoom = async () => {
-    if (!roomName || !participantName) {
-      alert('Please enter room name and your name');
-      return;
-    }
-
+  const joinRoom = useCallback(async () => {
     setLoading(true);
+    setError(null);
 
     try {
       await requestPermissions();
@@ -59,94 +68,89 @@ export const RoomScreen: React.FC = () => {
         roomName,
         participantName:
           participantName + '-' + Math.floor(Math.random() * 1000),
-        role: 'admin', // or 'publisher' if student
+        role: 'admin',
       });
-
-      console.log('LiveKit token response:', res);
 
       setToken(res.token);
       setUrl(res.livekitUrl);
-    } catch (err) {
-      console.error('Failed to join room', err);
-      alert('Failed to join room. Check console for error.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to join room');
     } finally {
       setLoading(false);
     }
-  };
+  }, [roomName, participantName]);
 
-  // Conditional rendering: show form first
-  if (!token || !url) {
+  // ───────── UI STATES ─────────
+
+  if (loading) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Join a Room</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Room Name"
-          value={roomName}
-          onChangeText={setRoomName}
-          placeholderTextColor={'black'}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Your Name"
-          value={participantName}
-          onChangeText={setParticipantName}
-          placeholderTextColor={'black'}
-        />
-
-        <Button title="Join Room" onPress={joinRoom} />
-
-        {loading && (
-          <View style={{ marginTop: 20 }}>
-            <ActivityIndicator size="large" />
-          </View>
-        )}
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#2563EB" />
+        <Text style={styles.loadingText}>Joining room…</Text>
       </View>
     );
   }
 
-  // LiveKit Room view
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorTitle}>Unable to Join</Text>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
+  if (!token || !url) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Invalid LiveKit session</Text>
+      </View>
+    );
+  }
+
   return (
-    <LiveKitRoom
-      serverUrl={url}
-      token={token}
-      connect
-      audio={true}
-      video={true}
-      options={{
-        adaptiveStream: { pixelDensity: 'screen' },
-      }}
-    >
-      <RoomView />
-    </LiveKitRoom>
+    <View style={styles.container}>
+      <LiveKitRoom
+        serverUrl={url}
+        token={token}
+        connect={true}
+        audio={true}
+        video={true}
+        options={{
+          adaptiveStream: { pixelDensity: 'screen' },
+        }}
+      >
+        <RoomView navigation={navigation} />
+      </LiveKitRoom>
+    </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
   },
-  loader: {
+  center: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  input: {
-    width: '100%',
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginVertical: 8,
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#374151',
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#DC2626',
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#4B5563',
+    textAlign: 'center',
   },
 });
