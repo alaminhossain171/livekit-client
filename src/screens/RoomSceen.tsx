@@ -43,7 +43,6 @@ export const RoomScreen: React.FC = () => {
   const requestPermissions = async () => {
     if (Platform.OS === 'android') {
       const result = await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.CAMERA,
         PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
       ]);
 
