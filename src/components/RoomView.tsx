@@ -1,8 +1,8 @@
 import { isTrackReference, useTracks, VideoTrack } from '@livekit/react-native';
-import { Text } from '@react-navigation/elements';
 import { Track } from 'livekit-client';
 import React from 'react';
-import { Dimensions, FlatList, StyleSheet, View } from 'react-native';
+import { Dimensions, FlatList, StyleSheet, View, Text } from 'react-native';
+import { RoomControls } from './RoomControls';
 
 const { width } = Dimensions.get('window');
 
@@ -10,56 +10,76 @@ export const RoomView = ({ navigation }) => {
   const tracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: true },
+      { source: Track.Source.Microphone, withPlaceholder: true }, // Audio track
       { source: Track.Source.ScreenShare, withPlaceholder: false },
     ],
     { onlySubscribed: false },
-  ); // all participant tracks
+  );
 
   return (
-    <FlatList
-      data={tracks}
-      renderItem={({ item }) =>
-        isTrackReference(item) ? (
-          <VideoTrack trackRef={item} style={styles.video} />
-        ) : (
-          <View style={styles.userCard}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {item?.participant.identity?.charAt(0).toUpperCase() || '?'}
-              </Text>
-            </View>
+    <>
+      <FlatList
+        data={tracks}
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.container}
+        renderItem={({ item }) => {
+          const name = item?.participant?.identity || 'Unknown';
+          const speaking = item?.participant?.isSpeaking;
+          // 🎥 Video Track
+          if (isTrackReference(item) && item.source === Track.Source.Camera) {
+            return <VideoTrack trackRef={item} style={styles.video} />;
+          }
 
-            <Text style={styles.name}>
-              {item?.participant?.identity || 'Unknown'}
-            </Text>
+          // 🎧 Audio-only user card
+          if (item.source === Track.Source.Microphone) {
+            return (
+              <View style={styles.audioCard}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.info}>
+                  <Text style={styles.name}>{name}</Text>
+                  {/* <Text style={styles.status}>🎙️ Audio Connected</Text> */}
+                  <Text style={styles.status}>
+                    🎙️ Audio Connected {speaking ? '💬 Speaking...' : ''}
+                  </Text>
+                </View>
+              </View>
+            );
+          }
 
-            {item.source === Track.Source.Camera && (
-              <Text style={styles.status}>🎙️ Audio Connected</Text>
-            )}
-            {/* {item.source === Track.Source.Microphone && (
-              <Text style={styles.status}>🎙️ Audio Connected</Text>
-            )} */}
-          </View>
-        )
-      }
-      numColumns={1} // can change to 2 for side-by-side
-      contentContainerStyle={styles.container}
-    />
+          // Optional fallback for other sources
+          return null;
+        }}
+      />
+      <RoomControls onEndCall={() => navigation.goBack()} />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    padding: 4,
+    padding: 8,
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
   video: {
-    width: width - 16, // full width minus padding
-    height: (width * 9) / 16, // 16:9 ratio
-    marginBottom: 8,
+    width: width - 16,
+    height: (width * 9) / 16,
+    marginBottom: 12,
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  audioCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    width: width - 16,
   },
   avatar: {
     width: 56,
@@ -68,28 +88,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563EB',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginRight: 16,
   },
   avatarText: {
     color: '#fff',
     fontSize: 22,
     fontWeight: '700',
   },
+  info: {
+    flex: 1,
+  },
   name: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
+    marginBottom: 4,
   },
   status: {
-    marginTop: 4,
     fontSize: 12,
     color: '#6B7280',
-  },
-  userCard: {
-    backgroundColor: '#F3F4F6',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    alignItems: 'center',
   },
 });

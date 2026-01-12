@@ -114,10 +114,11 @@ export const RoomScreen: React.FC = () => {
         serverUrl={url}
         token={token}
         connect={true}
-        audio={true}
+        audio={false}
         video={false}
         options={{
-          adaptiveStream: { pixelDensity: 'screen' },
+          // adaptiveStream: { pixelDensity: 'screen' },
+          adaptiveStream: false,
         }}
       >
         <RoomView navigation={navigation} />
