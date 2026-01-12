@@ -115,7 +115,7 @@ export const RoomScreen: React.FC = () => {
         token={token}
         connect={true}
         audio={true}
-        video={true}
+        video={false}
         options={{
           adaptiveStream: { pixelDensity: 'screen' },
         }}

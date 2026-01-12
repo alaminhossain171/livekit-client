@@ -5,6 +5,7 @@ import PrejoinScreen from '../screens/PrejoinScreen';
 import { RoomScreen } from '../screens/RoomSceen';
 
 const Stack = createNativeStackNavigator();
+
 const RootStack = () => {
   return (
     <NavigationContainer>
@@ -12,16 +13,12 @@ const RootStack = () => {
         <Stack.Screen
           name="PrejoinScreen"
           component={PrejoinScreen}
-          options={{
-            title: 'Pre-Join',
-          }}
+          options={{ title: 'Pre-Join' }}
         />
         <Stack.Screen
           name="RoomScreen"
           component={RoomScreen}
-          options={{
-            title: 'Room',
-          }}
+          options={{ title: 'Room' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

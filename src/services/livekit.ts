@@ -18,7 +18,7 @@ export interface FetchTokenResponse {
 
 /* -------------------- Axios instance -------------------- */
 
-const BASE_URL = 'http://192.168.12.242:3001';
+const BASE_URL = 'https://livekit-server-production-e15c.up.railway.app';
 
 const api = axios.create({
   baseURL: BASE_URL,

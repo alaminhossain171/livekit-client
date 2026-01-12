@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 const PrejoinScreen = () => {
@@ -24,9 +24,7 @@ const PrejoinScreen = () => {
     >
       <View style={styles.card}>
         <Text style={styles.title}>Join a Room</Text>
-        <Text style={styles.subtitle}>
-          Enter room ID and your name to continue
-        </Text>
+        <Text style={styles.subtitle}>Enter room ID and your name</Text>
 
         <TextInput
           style={styles.input}
@@ -62,11 +60,11 @@ const PrejoinScreen = () => {
 };
 
 export default PrejoinScreen;
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#fff', // dark background
-    // justifyContent: 'center',
+    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
@@ -76,17 +74,8 @@ const styles = StyleSheet.create({
     padding: 20,
     elevation: 4,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 20,
-  },
+  title: { fontSize: 24, fontWeight: '700', color: '#111827', marginBottom: 6 },
+  subtitle: { fontSize: 14, color: '#6B7280', marginBottom: 20 },
   input: {
     height: 52,
     borderWidth: 1,
@@ -105,12 +94,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-  buttonDisabled: {
-    backgroundColor: '#93C5FD',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  buttonDisabled: { backgroundColor: '#93C5FD' },
+  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });
